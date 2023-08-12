@@ -27,7 +27,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/glp
 
 function install_packages() {
     info "Installing dependencies (apache2, mariadb-server, php8.2, php8.2-fpm, PHP extensions, curl and jq)"
-    apt install apache2 mariadb-server php8.2 php8.2-{fpm,curl,gd,intl,xml,common,mysql,bz2,zip,ldap,mbstring} curl jq -y
+    apt install apache2 mariadb-server php8.2 php8.2-{fpm,curl,gd,intl,xml,common,mysql,bz2,zip,ldap,mbstring} curl jq wget -y
 }
 
 function apache_configuration() {
