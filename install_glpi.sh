@@ -12,7 +12,7 @@ function info() {
 #Check that the script is running as root
 function check_root() {
     if [ "$EUID" -ne 0 ]; then
-        warn "Please run as root (su -)"
+        warn "Please run as root"
         exit
     fi
 }
@@ -28,6 +28,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/glp
 function install_packages() {
     info "Installing dependencies (apache2, mariadb-server, php8.2, php8.2-fpm, PHP extensions, curl and jq)"
     apt install apache2 mariadb-server php8.2 php8.2-{fpm,curl,gd,intl,xml,common,mysql,bz2,zip,ldap,mbstring} curl jq wget -y
+    apt update && apt upgrade -y
 }
 
 function apache_configuration() {
@@ -82,23 +83,21 @@ function install_glpi() {
 
 # Prevent files from being accessed by the webserver directly - https://glpi-install.readthedocs.io/en/latest/install/index.html#files-and-directories-locations
     mkdir /etc/glpi/ && cp -r /var/www/glpi/config/. /etc/glpi/ && chown -R www-data:www-data /etc/glpi/
-    mkdir /var/lib/glpi/ && cp -r /var/www/glpi/files/. /var/lib/glpi && chown -R www-data:www-data /var/lib/glpi/
+    mkdir /var/lib/glpi/ && cp -r /var/www/glpi/files/. /var/lib/glpi/ && chown -R www-data:www-data /var/lib/glpi/
     mkdir /var/log/glpi/ && chown -R www-data:www-data /var/log/glpi/
 # Permission for marketplace directory
     chown -R www-data:www-data /var/www/glpi/marketplace/
 
-# Creation of the file downstream.php
-    echo "
-<?php
+# Creation of the file downstream.php - https://glpi-install.readthedocs.io/en/latest/install/index.html#files-and-directories-locations
+    echo "<?php
 define('GLPI_CONFIG_DIR', '/etc/glpi/');
 
 if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
    require_once GLPI_CONFIG_DIR . '/local_define.php';
 }" > /var/www/glpi/inc/downstream.php
 
-# Creation of the file local_define.php
-    echo "
-<?php
+# Creation of the file local_define.php - https://glpi-install.readthedocs.io/en/latest/install/index.html#files-and-directories-locations
+    echo "<?php
 define('GLPI_VAR_DIR', '/var/lib/glpi');
 define('GLPI_LOG_DIR', '/var/log/glpi');" > /etc/glpi/local_define.php
 
@@ -108,7 +107,7 @@ define('GLPI_LOG_DIR', '/var/log/glpi');" > /etc/glpi/local_define.php
     systemctl restart php8.2-fpm
 }
 
-function display_creditentials() {
+function display_credentials() {
     info "==========> GLPI installation details <=========="
     warn "Record this informations !"
     info "You can access GLPI with this link and continue the installation  : https://$SERVERNAME"
@@ -118,8 +117,6 @@ function display_creditentials() {
 # DELETE install/install.php ! https://glpi-install.readthedocs.io/en/latest/install/index.html#post-installation
     warn "After completing the installation of GLPI, delete the file install/install.php for security reasons."
     info "================================================="
-
-
 }
 check_root
 install_packages
@@ -127,4 +124,4 @@ apache_configuration
 vhost_configuration
 db_configuration
 install_glpi
-display_creditentials
+display_credentials
